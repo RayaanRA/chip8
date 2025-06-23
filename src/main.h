@@ -14,6 +14,8 @@ extern uint8_t sTimer;
 extern uint8_t sp;
 extern uint8_t graphics[64 * 32];
 extern uint8_t V[16];
+extern uint8_t font[80];
+extern int keys[16];
 extern int screenWidth;
 extern int screenHeight;
 

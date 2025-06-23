@@ -11,16 +11,19 @@ void cycle() {
 
 	switch(firstNum) {
 		case 0x0:
-			switch(opcode) {
-				case 0x00E0:
+			switch(NN) {
+				case 0xE0:
 					for (int i = 0; i < (64 * 32); i++) {
 						graphics[i] = 0;
 					}
 					pc += 2;
 					break;
-				case 0x00EE:
-					sp--;
+				case 0xEE:
+					if (sp > 0x0) {
+						sp--;
+					}
 					pc = stack[sp];
+					pc += 2;
 					break;
 			}
 			break;
@@ -40,14 +43,17 @@ void cycle() {
 			break;
 		case 0x4:
 			if (V[X] != NN) {
+				pc += 4;
+			} else {
 				pc += 2;
 			}
-			pc += 2;
+			break;
 		case 0x5:
 			if (V[X] == V[Y]) {
+				pc += 4;
+			} else {
 				pc += 2;
 			}
-			pc += 2;
 			break;
 		case 0x6:
 			V[X] = NN;
@@ -59,72 +65,67 @@ void cycle() {
 			break;
 		case 0x8:
 			switch(N) {
-				case 0:
+				case 0x0:
 					V[X] = V[Y];
 					pc += 2;
 					break;
-				case 1:
+				case 0x1:
 					V[X] |= V[Y];
+					V[0xF] = 0;
 					pc += 2;
 					break;
-				case 2:
+				case 0x2:
 					V[X] &= V[Y];
+					V[0xF] = 0;
 					pc += 2;
 					break;
-				case 3:
+				case 0x3:
 					V[X] ^= V[Y];
+					V[0xF] = 0;
 					pc += 2;
 					break;
-				case 4:
-					uint16_t sum = V[X] + V[Y];
-					if (sum > 255) {
-						V[0xF] = 1;
-					} else {
-						V[0xF] = 0;
-					}
-
+				case 0x4:
+					uint8_t vx = V[X];
+					uint8_t vy = V[Y];
 					V[X] += V[Y];
+					uint16_t sum = vx + vy;
+					V[0xF] = (sum > 255) ? 1 : 0;
 					pc += 2;
 					break;
-				case 5:
-					if (V[X] >= V[Y]) {
-						V[0xF] = 1;
-					}
-					if (V[X] < V[Y]) {
-						V[0xF] = 0;
-					}
-					V[X] -= V[Y];
+				case 0x5:
+					vx = V[X];
+					vy = V[Y];
+					V[X] = V[X] - V[Y];
+					V[0xF] = (vx >= vy) ? 1 : 0;
 					pc += 2;
 					break;
-				case 6:
-					V[X] = V[Y];
-					V[0xF] = V[X] && 0x1;
-					V[X] >>= 1;
+				case 0x6:
+					vy = V[Y];
+					V[X] = vy >> 1;
+					V[0xF] = vy & 0x1;
 					pc += 2;
 					break;
-				case 7:
-					if (V[X] >= V[Y]) {
-						V[0xF] = 1;
-					}
-					if (V[X] < V[Y]) {
-						V[0xF] = 0;
-					}
+				case 0x7:
+					vx = V[X];
+					vy = V[Y];
 					V[X] = V[Y] - V[X];
+					V[0xF] = (vy >= vx) ? 1 : 0;
 					pc += 2;
 					break;
 				case 0xE:
-					V[X] = V[Y];
-					V[0xF] = V[X] && 0x1;
-					V[X] <<= 1;
+					vy = V[Y];
+					V[X] = vy << 1;
+					V[0xF] = (vy & 0x80) >> 7;
 					pc += 2;
 					break;
 			}
 			break;
 		case 0x9:
 			if (V[X] != V[Y]) {
+				pc += 4;
+			} else {
 				pc += 2;
 			}
-			pc += 2;
 			break;
 		case 0xA:
 			ir = NNN;
@@ -136,6 +137,7 @@ void cycle() {
 		case 0xC:
 			int randomNum = GetRandomValue(0, 255);
 			V[X] = randomNum & NN;
+			pc += 2;
 			break;
 		case 0xD:
 			V[0xF] = 0;
@@ -160,6 +162,92 @@ void cycle() {
 			}
 			pc += 2;
 			break;
+		case 0xE:
+			switch(NN) {
+				case 0x9E:
+					if (IsKeyDown(keys[V[X]])) {
+						pc += 2;
+					}
+					pc += 2;
+					break;
+				case 0xA1:
+					if (!IsKeyDown(keys[V[X]])) {
+						pc += 2;
+					}
+					pc += 2;
+					break;
+			}
+			break;
+		case 0xF:
+			switch(NN) {
+				case 0x07:
+					V[X] = dTimer;
+					pc += 2;
+					break;
+				case 0x15:
+					dTimer = V[X];
+					pc += 2;
+					break;
+				case 0x18:
+					sTimer = V[X];
+					pc += 2;
+					break;
+				case 0x1E:
+					ir += V[X];
+					if (ir > 0x0FFF) {
+						V[0xF] = 1;
+					} else {
+						V[0xF] = 0;
+					}
+					pc += 2;
+					break;
+				case 0x0A:
+					bool keyPressed = false;
+					for (int i = 0; i < 16; i++) {
+						if (IsKeyReleased(keys[i])) {
+							V[X] = i;
+							keyPressed = true;
+							break;
+						}
+					}
+					if (!keyPressed) {
+						return;
+					}
+					pc += 2;
+					break;
+				case 0x29:
+					ir = V[X] * 5;
+					pc += 2;
+					break;
+				case 0x33:
+					int thirdDigit;
+					int secondDigit;
+					int firstDigit;
+					thirdDigit = V[X] % 10;
+					secondDigit = (V[X] / 10) % 10;
+					firstDigit = V[X] / 100;
+					memory[ir] = firstDigit;
+					memory[ir + 1] = secondDigit;
+					memory[ir + 2] = thirdDigit;
+					pc += 2;
+					break;
+				case 0x55:
+					for (int i = 0; i < X + 1; i++) {
+						memory[ir + i] = V[i];
+					}
+					ir = ir + X + 1;
+					pc += 2;
+					break;
+				case 0x65:
+					for (int i = 0; i < X + 1; i++) {
+						V[i] = memory[ir + i];
+					}
+					ir = ir + X + 1;
+					pc += 2;
+					break;
+			}
+			break;
+
 
 	}
 }
