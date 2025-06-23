@@ -11,4 +11,4 @@ Note that this interpreter was made for the original CHIP-8.
 
 ---
 
-![spaceinvaders](images/spaceinvaders.png)
+![tetris](images/tetris.png)
