@@ -13,9 +13,7 @@ void cycle() {
 		case 0x0:
 			switch(NN) {
 				case 0xE0:
-					for (int i = 0; i < (64 * 32); i++) {
-						graphics[i] = 0;
-					}
+					memset(graphics, 0, sizeof(graphics));
 					pc += 2;
 					break;
 				case 0xEE:

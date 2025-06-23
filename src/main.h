@@ -3,6 +3,7 @@
 
 #include <stdio.h>
 #include <stdint.h>
+#include <string.h>
 #include "raylib.h"
 
 extern uint8_t memory[4096];

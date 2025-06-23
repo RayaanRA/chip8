@@ -50,8 +50,8 @@ int keys[16] = {
     KEY_V     // 0xF
 };
 
-int screenWidth = 1280; // 64 x 20
-int screenHeight = 640; // 32 x 20
+int screenWidth = 640; // 64 x 10
+int screenHeight = 320; // 32 x 10
 
 
 int main(int argc, char *argv[]) {
@@ -72,7 +72,7 @@ int main(int argc, char *argv[]) {
 	SetTargetFPS(60);
 
 	float instructionTimer = 0.0f;
-	float instructionInterval = 1.0f / 700.0f;
+	float instructionInterval = 1.0f / 1000.0f;
 
 	init();
 
